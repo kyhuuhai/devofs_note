@@ -1,0 +1,94 @@
+{
+    "agent": {
+        "metrics_collection_interval": 60,
+        "logfile": "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log"
+    },
+    "logs": {
+        "logs_collected": {
+            "files": {
+                "collect_list": [
+                                        {
+                        "file_path": "/var/log/diana/application.log",
+                        "log_group_name": "/diana/prod/api/application",
+                        "log_stream_name": "application-logging-{instance_id}",
+                        "timestamp_format": "%Y-%m-%d %H:%M:%S.%f",
+                        "multi_line_start_pattern": "{timestamp_format}"
+                    },                                        {
+                        "file_path": "/var/log/diana/application_flat_line.log",
+                        "log_group_name": "/diana/prod/api/application_flat_line",
+                        "log_stream_name": "application-flat-line-logging-{instance_id}",
+                        "timestamp_format": "%Y-%m-%d %H:%M:%S.%f",
+                        "multi_line_start_pattern": "{timestamp_format}"
+                    },
+                    {
+						"file_path": "/var/log/eb-engine.log",
+						"log_group_name": "/aws/elasticbeanstalk/diana-prod-api-environment/var/log/eb-engine.log",
+						"log_stream_name": "{instance_id}"
+					},
+					{
+						"file_path": "/var/log/eb-hooks.log",
+						"log_group_name": "/aws/elasticbeanstalk/diana-prod-api-environment/var/log/eb-hooks.log",
+						"log_stream_name": "{instance_id}"
+					},
+					{
+						"file_path": "/var/log/nginx/access.log",
+						"log_group_name": "/aws/elasticbeanstalk/diana-prod-api-environment/var/log/nginx/access.log",
+						"log_stream_name": "{instance_id}"
+					},
+					{
+						"file_path": "/var/log/nginx/error.log",
+						"log_group_name": "/aws/elasticbeanstalk/diana-prod-api-environment/var/log/nginx/error.log",
+						"log_stream_name": "{instance_id}"
+					},
+					{
+						"file_path": "/var/log/httpd/access_log",
+						"log_group_name": "/aws/elasticbeanstalk/diana-prod-api-environment/var/log/httpd/access_log",
+						"log_stream_name": "{instance_id}"
+					},
+					{
+						"file_path": "/var/log/httpd/error_log",
+						"log_group_name": "/aws/elasticbeanstalk/diana-prod-api-environment/var/log/httpd/error_log",
+						"log_stream_name": "{instance_id}"
+					},
+					{
+						"file_path": "/var/log/web.stdout.log",
+						"log_group_name": "/aws/elasticbeanstalk/diana-prod-api-environment/var/log/web.stdout.log",
+						"log_stream_name": "{instance_id}"
+					}                                
+                ]
+            }
+        }
+    },
+    "metrics": {
+        "namespace": "System/Linux",
+        "append_dimensions": {
+            "AutoScalingGroupName": "${aws:AutoScalingGroupName}",
+            "InstanceId": "${aws:InstanceId}"
+        },
+        "aggregation_dimensions" : [
+            ["AutoScalingGroupName"],
+            ["InstanceId"]
+        ],
+        "metrics_collected": {
+            "mem": {
+                "measurement": [
+                    { 
+                        "name": "mem_used_percent",
+                        "rename": "MemoryUtilization" 
+                    }
+                ],
+                "metrics_collection_interval": 60
+            },
+            "disk": {
+                "measurement": [{
+                    "name": "used_percent",
+                    "rename": "DiskUsedPercent"
+                }],
+                "metrics_collection_interval": 60,
+                "resources": [
+                  "/"
+                ]
+              }
+        }
+    }
+}
