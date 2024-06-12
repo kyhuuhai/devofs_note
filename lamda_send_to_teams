@@ -1,0 +1,137 @@
+const { CodePipelineClient, GetPipelineExecutionCommand } = require("@aws-sdk/client-codepipeline");
+const client = new CodePipelineClient({region: `${process.env.region}`});
+
+const notifyToTeams = async(body) => {
+    
+    try {
+        const { Records } = body;
+
+        if (!Records.length) {
+            // failed payload
+            return 400;
+        }
+
+        let { Sns: { Message }} = Records[0];
+        const { detail } = JSON.parse(Message);
+
+        const pipelineName = detail['pipeline'];
+        const state = detail['state'];
+        const params = {
+            pipelineExecutionId: detail['execution-id'],
+            pipelineName
+        };
+
+        const command = new GetPipelineExecutionCommand(params);
+
+        const { pipelineExecution: { artifactRevisions } } = await client.send(command);
+
+        if (artifactRevisions.length) {
+            let { revisionSummary, revisionUrl, revisionId: commitId } = artifactRevisions[0];
+            revisionSummary = JSON.parse(revisionSummary);
+
+            const messageCommit = revisionSummary.CommitMessage;
+            const githubUrl = getGithubUrl(revisionUrl);
+            await sendNotify({state, pipelineName, githubUrl, commitId, messageCommit});
+            return 200;
+        }
+
+        return 400;
+    }
+    catch (e) {
+        console.error(e);
+        return 500;
+    }
+};
+
+const getGithubUrl = (revisionUrl) => {
+    const urlParams = new URLSearchParams(revisionUrl);
+    const fullRepositoryId = urlParams.get('FullRepositoryId');
+    const commit = urlParams.get('Commit');
+
+    return `https://github.com/${fullRepositoryId}/commit/${commit}`
+}
+
+
+const sendNotify = async ({ state, pipelineName, githubUrl, commitId, messageCommit }) => {
+    const body = {
+        "type": "message",
+        "attachments": [
+            {
+                "contentType": "application/vnd.microsoft.card.adaptive",
+                "content": {
+                    "type": "AdaptiveCard",
+                    "body": [
+                        {
+                            "type": "TextBlock",
+                            "size": "Medium",
+                            "weight": "Bolder",
+                            "text": "Deployment's status"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": `Pipeline: ${pipelineName} - ${state}`
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": `Commit message: ${messageCommit}`
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": `Commit: ${commitId}`
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": `Github: ${githubUrl}`
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "Hi <at>User1</at>, <at>User2</at>, <at>User3</at>, <at>User7</at>"
+                        },
+                    ],
+                    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                    "version": "1.0",
+                    "msteams": {
+                        "entities": [
+                            {
+                                "type": "mention",
+                                "text": "<at>User2</at>",
+                                "mentioned": {
+                                    "id": "email",
+                                    "name": "Quang Dang"
+                                }
+                            },
+                            {
+                                "type": "mention",
+                                "text": "<at>User3</at>",
+                                "mentioned": {
+                                    "id": "email",
+                                    "name": "Nguyen"
+                                }
+                            },
+
+                            {
+                                "type": "mention",
+                                "text": "<at>User7</at>",
+                                "mentioned": {
+                                    "id": "email",
+                                    "name": "vtmhanh"
+                                }
+                            }
+                        ],
+                        "width": "Full"
+                    }
+                }
+            }
+        ]
+    }
+    await fetch(`${process.env.webhookUrl}`, {
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        method: "POST",
+        body: JSON.stringify(body)
+    });
+}
+
+exports.notifyToTeams = notifyToTeams;
