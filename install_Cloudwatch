@@ -1,0 +1,4 @@
+# Amazon Linux 2
+sudo yum install amazon-cloudwatch-agent
+
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a status -a fetch-config ec2 -s -c ssm:/diana/prod/api/cloudwatch-agent/custom-configuration
