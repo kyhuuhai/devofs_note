@@ -1,4 +1,5 @@
-# Get AMI
+# 1.Create container instance
+## 1.1 Get AMI
 https://docs.aws.amazon.com/AmazonECS/latest/developerguide/retrieve-ecs-optimized_AMI.html
 
 `aws ssm get-parameters --names /aws/service/ecs/optimized-ami/amazon-linux-2023/recommended --region ap-southeast-1`
@@ -23,12 +24,16 @@ https://docs.aws.amazon.com/AmazonECS/latest/developerguide/retrieve-ecs-optimiz
 
 ```
 
-# user data instance
+## 1.2 user data instance
 https://docs.aws.amazon.com/AmazonECS/latest/developerguide/launch_container_instance.html
 ```
 #!/bin/bash
 echo ECS_CLUSTER=your_cluster_name >> /etc/ecs/ecs.config
 ```
 
+## 1.3 IAM instance profile
+ecsInstanceRole
+
 # Check Status SSM Agent
 https://docs.aws.amazon.com/systems-manager/latest/userguide/ssm-agent-status-and-restart.html
+`sudo systemctl status amazon-ssm-agent`
