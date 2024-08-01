@@ -1,5 +1,20 @@
-# 1.Create container instance
-## 1.1 Get AMI
+# 1. Create ECS Cluster
+## 1.1 Create Cluster - dont choose ec2 or fargate in infra, skip it
+## 1.2 Create Task Definition
+Launch type = EC2
+Operating system/Architecture = Linux
+Network mode = bride || if OS == Window => brigde = none
+Task Role = None
+Task Execution Role = ecsTaskExecution
+
+### Container 1
+krylot/ecs-demo:v2
+Container port = 3000 - TCP - HTTP
+
+`Resource allocation limits` <= `Task size`
+
+# 2. Create container instance
+## 2.1 Get AMI
 https://docs.aws.amazon.com/AmazonECS/latest/developerguide/retrieve-ecs-optimized_AMI.html
 
 `aws ssm get-parameters --names /aws/service/ecs/optimized-ami/amazon-linux-2023/recommended --region ap-southeast-1`
@@ -24,16 +39,22 @@ https://docs.aws.amazon.com/AmazonECS/latest/developerguide/retrieve-ecs-optimiz
 
 ```
 
-## 1.2 user data instance
+## 2.2 user data instance
 https://docs.aws.amazon.com/AmazonECS/latest/developerguide/launch_container_instance.html
 ```
 #!/bin/bash
 echo ECS_CLUSTER=your_cluster_name >> /etc/ecs/ecs.config
 ```
 
-## 1.3 IAM instance profile
+## 2.3 IAM instance profile
 ecsInstanceRole
 
 # Check Status SSM Agent
 https://docs.aws.amazon.com/systems-manager/latest/userguide/ssm-agent-status-and-restart.html
 `sudo systemctl status amazon-ssm-agent`
+
+# 3. Create ECS Service
+Launch type = EC2
+Application type = Service
+Family = Task Definition step `1.2`
+Service type = Replica
