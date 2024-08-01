@@ -2,13 +2,18 @@
 ## 1.1 Create Cluster - dont choose ec2 or fargate in infra, skip it
 ## 1.2 Create Task Definition
 Launch type = EC2
+
 Operating system/Architecture = Linux
+
 Network mode = bride || if OS == Window => brigde = none
+
 Task Role = None
+
 Task Execution Role = ecsTaskExecution
 
 ### Container 1
 krylot/ecs-demo:v2
+
 Container port = 3000 - TCP - HTTP
 
 `Resource allocation limits` <= `Task size`
@@ -55,6 +60,9 @@ https://docs.aws.amazon.com/systems-manager/latest/userguide/ssm-agent-status-an
 
 # 3. Create ECS Service
 Launch type = EC2
+
 Application type = Service
+
 Family = Task Definition step `1.2`
+
 Service type = Replica
