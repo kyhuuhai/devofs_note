@@ -52,7 +52,7 @@ echo ECS_CLUSTER=your_cluster_name >> /etc/ecs/ecs.config
 ```
 
 ## 2.3 IAM instance profile
-ecsInstanceRole
+ecsInstanceRole - [AmazonEC2ContainerServiceforEC2Role, AmazonSSMManagedInstanceCore]
 
 # Check Status SSM Agent
 https://docs.aws.amazon.com/systems-manager/latest/userguide/ssm-agent-status-and-restart.html
