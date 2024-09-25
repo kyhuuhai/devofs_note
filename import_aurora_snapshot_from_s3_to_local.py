@@ -22,8 +22,12 @@ def safe_convert(value):
     if isinstance(value, np.floating):
         return float(value)
     return value
+    
+def quote_identifier(s):
+    return '"{}"'.format(s.replace('"', '""'))
 
 snapshot_dir = '.'
+n=1
 for table_dir in os.listdir(snapshot_dir):
     table_path = os.path.join(snapshot_dir, table_dir)
     if os.path.isdir(table_path):
@@ -45,17 +49,20 @@ for table_dir in os.listdir(snapshot_dir):
                         df = pd.read_parquet(file_path)
                         
                         # Generate the SQL insert statement
-                        columns = ', '.join(df.columns)
+                        columns = ', '.join(quote_identifier(col) for col in df.columns)
                         placeholders = ', '.join(['%s'] * len(df.columns))
-                        insert_query = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
-                        print(insert_query)
+                        insert_query = f'INSERT INTO {quote_identifier(table_name)} ({columns}) VALUES ({placeholders})'
+                        
                         # Convert DataFrame to list of tuples for insertion, with type conversion
                         data = [tuple(safe_convert(x) for x in row) for row in df.itertuples(index=False, name=None)]
+                        print(insert_query)
                         
                         # Execute the insert
                         try:
                             cur.executemany(insert_query, data)
                             print(f"Inserted {len(data)} rows into {table_name}")
+                            print("Number of table", n)
+                            n=n+1
                         except psycopg2.Error as e:
                             print(f"Error inserting data into {table_name}: {e}")
                             conn.rollback()  # Rollback the transaction on error
